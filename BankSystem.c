@@ -25,6 +25,8 @@ void addAccount(const char *);
 void updateAccount(const char *);
 void deleteHolderAccounts(const char *);
 int displayAllAccounts(const char *);
+int checkName(const char *);
+int checkEmail(const char *);
 
 int main(){
     FILE *file;
