@@ -86,8 +86,16 @@ void addAccount(const char *fileName){
 
     printf("Enter holder name: ");
     scanf("%s", acc.holderName);
+        if(!checkName(acc.holderName)){
+        printf("Error: Invalid name. Please enter alphabetical characters only.\n");
+        return;
+    }
     printf("Enter holder email: ");
     scanf("%s", acc.holderEmail);
+        if(!checkEmail(acc.holderEmail)){
+        printf("Error: Invalid Email. Please enter a correct Email format.\n");
+        return;
+    }
     printf("Enter account number: ");
     while (getchar() != '\n');
     scanf("%ld", &accNum);
@@ -109,6 +117,10 @@ void addAccount(const char *fileName){
     }
     printf("Enter initial balance: ");
     scanf("%lf", &acc.balance);
+        if(acc.balance<0){
+        printf("Error: Initial balance must be positive.\n");
+            return;
+    }
 
     acc.numOfOper = 0;
 
@@ -176,6 +188,10 @@ void updateAccount(const char *fileName){
             case 1:
                 printf("Enter new holder name: ");
                 scanf("%s", accounts[accountIndex].holderName);
+                if(!checkName(accounts[accountIndex].holderName)){
+                    printf("Error: Invalid name. Please enter alphabetical characters only.\n");
+                    return;
+                }
                 break;
 
             case 2:
@@ -273,4 +289,18 @@ int displayAllAccounts(const char *fileName) {
     fclose(file);
     return 1;
 }
-// testing
+int checkName(const char *name){
+    int i;
+    for(i=0;name[i]!='\0';i++){
+        if(!isalpha(name[i]) && name[i]!=' '){ //isalpha() built in function to check if its a letter or not
+            return 0;
+        }
+    }
+    return 1;
+}
+int checkEmail(const char *email){
+    const char *atSign = strchr(email,'@');
+    const char *dotSign = strchr(email,'.');
+    return (atSign && dotSign  &&  atSign < dotSign);
+}
+
