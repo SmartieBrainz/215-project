@@ -250,7 +250,7 @@ int displayAllAccounts(const char *fileName) {
         printf("Error opening file.\n");
         return 0;
     }
-
+// testing
     printf("Displaying all accounts:\n");
     printf("-------------------------------------------------\n");
 
@@ -273,3 +273,4 @@ int displayAllAccounts(const char *fileName) {
     fclose(file);
     return 1;
 }
+// testing
