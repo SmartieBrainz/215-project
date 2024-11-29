@@ -17,33 +17,30 @@ struct account
     char holderName[50];
     char holderEmail[100];
     int numOfOper;
-    struct operation oper[100];
+    struct operation oper[100]; // it said dont define inner struct
 };
-
-long accNums[100];
-int countOfacc = 0;
 
 void addAccount(const char *);
 void updateAccount(const char *);
+void deleteAccount(const char *);
 void deleteHolderAccounts(const char *);
 int displayAllAccounts(const char *);
 int checkName(const char *);
 int checkEmail(const char *);
 
 int main(){
-    FILE *file;
 
     int open = 1;
     const char *fileName = "accounts.bin";
-    file = fopen(fileName, "wb");
 
     do{
         printf("******************************\n");
         printf("*   1. Add account           *\n");
         printf("*   2. Update account        *\n");
-        printf("*   3. Delete all account    *\n");
-        printf("*   4. Display all account   *\n");
-        printf("*   5. Exit                  *\n");
+        printf("*   3. Delete account        *\n");
+        printf("*   4. Delete all account    *\n");
+        printf("*   5. Display all account   *\n");
+        printf("*   6. Exit                  *\n");
         printf("******************************\n");
         printf("Enter your choice: ");
         int choice;
@@ -60,14 +57,18 @@ int main(){
                 break;
 
             case 3:
-                deleteHolderAccounts(fileName);
+                deleteAccount(fileName);
                 break;
 
             case 4:
-                displayAllAccounts(fileName);
+                deleteHolderAccounts(fileName);
                 break;
 
             case 5:
+                displayAllAccounts(fileName);
+                break;
+
+            case 6:
                 printf("Thanks, and goodbye.");
                 open = 0;
                 break;
@@ -83,8 +84,6 @@ int main(){
 
 
 void addAccount(const char *fileName){
-    FILE *file;
-    file = fopen(fileName, "ab");
     struct account acc;
     long accNum;
 
@@ -103,44 +102,48 @@ void addAccount(const char *fileName){
     printf("Enter account number: ");
     while (getchar() != '\n');
     scanf("%ld", &accNum);
-    if(countOfacc == 0){
-        accNums[countOfacc] = accNum;
-        countOfacc++;
-        acc.accNum = accNum;
-    }else{
-        int i;
-        for(i = 0; i < countOfacc; i++){
-            if(accNums[i] == accNum){
+
+    // Check for the existance of the number from the file itself, so that when you close and 
+    // open the program it takes into consideration the old accounts that are in there
+    struct account tempAcc;
+    FILE *tempFile = fopen(fileName, "rb");
+    if (tempFile != NULL) {
+        while (fread(&tempAcc, sizeof(struct account), 1, tempFile) == 1) {
+            if (tempAcc.accNum == accNum) {
                 printf("Account number already exists. Please enter a different account number.\n");
+                fclose(tempFile);
                 return;
             }
         }
-        accNums[countOfacc] = accNum;
-        countOfacc++;
-        acc.accNum = accNum;
+        fclose(tempFile);
     }
+    acc.accNum = accNum;
+
+
     printf("Enter initial balance: ");
     scanf("%lf", &acc.balance);
-        if(acc.balance<0){
-        printf("Error: Initial balance must be positive.\n");
+        if(acc.balance < 0){
+            printf("Error: Initial balance must be positive.\n");
             return;
     }
 
     acc.numOfOper = 0;
 
-    fprintf(file, "Name: %s\n", acc.holderName);
-    fprintf(file, "Email: %s\n", acc.holderEmail);
-    fprintf(file, "Account number: %ld\n", acc.accNum);
-    fprintf(file, "Number of operations: %d\n", acc.numOfOper);
-    fprintf(file, "Balance: %lf\n", acc.balance);
+    FILE *file;
+    file = fopen(fileName, "ab");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
 
+    fwrite(&acc, sizeof(struct account), 1, file);
     printf("The data has been saved successfully.\n");
 
     fclose(file);
 }
 
 void updateAccount(const char *fileName){
-    FILE *file = fopen(fileName, "r");
+    FILE *file = fopen(fileName, "rb");
     if (file == NULL) {
         printf("No accounts found.\n");
         return;
@@ -149,9 +152,7 @@ void updateAccount(const char *fileName){
     struct account accounts[100];
     int count = 0;
 
-    while (fscanf(file, "Name: %s\nEmail: %s\nAccount number: %ld\nNumber of operations: %d\nBalance: %lf\n-----\n",
-                  accounts[count].holderName, accounts[count].holderEmail, &accounts[count].accNum,
-                  &accounts[count].numOfOper, &accounts[count].balance) == 5) {
+    while (fread(&accounts[count], sizeof(struct account), 1, file) == 1) {
         count++;
     }
 
@@ -194,7 +195,7 @@ void updateAccount(const char *fileName){
                 scanf("%s", accounts[accountIndex].holderName);
                 if(!checkName(accounts[accountIndex].holderName)){
                     printf("Error: Invalid name. Please enter alphabetical characters only.\n");
-                    return;
+                    break;
                 }
                 break;
 
@@ -206,17 +207,18 @@ void updateAccount(const char *fileName){
                 if(accNumToUpdate == newAccNum){
                     printf("Account number is already %ld.\n", newAccNum);
                     break;
-                }else{
-                for (int i = 0; i < count; i++) {
-                    if (accounts[i].accNum == newAccNum) {
-                        printf("Account number already exists. Please enter a different account number.\n");
-                        found = 1;
-                        break;
+                }
+                else{
+                    for (int i = 0; i < count; i++) {
+                        if (accounts[i].accNum == newAccNum) {
+                            printf("Account number already exists. Please enter a different account number.\n");
+                            found = 1;
+                            break;
+                        }
                     }
-                }
-                if (!found) {
-                    accounts[accountIndex].accNum = newAccNum;
-                }
+                    if (!found) {
+                        accounts[accountIndex].accNum = newAccNum;
+                    }
                 }
                 break;
 
@@ -231,26 +233,61 @@ void updateAccount(const char *fileName){
     } while (open);
 
 
-    file = fopen(fileName, "w");
+    file = fopen(fileName, "wb");
     if (file == NULL) {
         printf("Error opening file.\n");
         return;
     }
 
-    for (int i = 0; i < count; i++) {
-        fprintf(file, "Name: %s\n", accounts[i].holderName);
-        fprintf(file, "Email: %s\n", accounts[i].holderEmail);
-        fprintf(file, "Account number: %ld\n", accounts[i].accNum);
-        fprintf(file, "Number of operations: %d\n", accounts[i].numOfOper);
-        fprintf(file, "Balance: %lf\n", accounts[i].balance);
-        fprintf(file, "-----\n");
-    }
+    // Writing down the whole array at once for convenience
+    fwrite(accounts, sizeof(struct account), count, file);
 
     fclose(file);
 }
 
+void deleteAccount(const char *fileName) {
+    const char *tempFilename = "temp.bin";
+    FILE *file = fopen(fileName, "rb");
+    FILE *tempFile = fopen(tempFilename, "wb");
+
+    if (file == NULL || tempFile == NULL) {
+        printf("Error opening the file.\n");
+
+        // closing the opened file to ensure there are no memory leaks
+        if (file) fclose(file);
+        if (tempFile) fclose(tempFile);
+        return;
+    }
+
+    printf("Enter the account number to delete: ");
+    long target;
+    int accountFound = 0;
+
+    scanf("%ld", &target);
+    
+    struct account acc;
+
+    while (fread(&acc, sizeof(struct account), 1, file) == 1) {
+        if (acc.accNum == target) {
+            accountFound = 1;
+            printf("Account with account number %ld has been deleted.\n", acc.accNum);
+            continue;
+        }
+        fwrite(&acc, sizeof(struct account), 1, tempFile);
+    }
+
+    if (!accountFound) {
+        printf("Account number %ld was not found\n", target);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+    remove(fileName);
+    rename(tempFilename, fileName);
+}
+
 void deleteHolderAccounts(const char *fileName){
-    FILE *file = fopen(fileName, "w");
+    FILE *file = fopen(fileName, "wb");
     if (file == NULL) {
         printf("Error opening the file.\n");
         return;
@@ -265,7 +302,7 @@ int displayAllAccounts(const char *fileName) {
     struct account acc;
     int accountFound = 0;
 
-    file = fopen(fileName, "r"); 
+    file = fopen(fileName, "rb"); 
     if (file == NULL) {
         printf("Error opening file.\n");
         return 0;
@@ -274,8 +311,7 @@ int displayAllAccounts(const char *fileName) {
     printf("Displaying all accounts:\n");
     printf("-------------------------------------------------\n");
 
-    while (fscanf(file, "Name: %s\nEmail: %s\nAccount number: %ld\nNumber of operations: %d\nBalance: %lf\n-----\n",
-                  acc.holderName, acc.holderEmail, &acc.accNum, &acc.numOfOper, &acc.balance) == 5) {
+    while (fread(&acc, sizeof(struct account), 1, file) == 1) {
         accountFound = 1;
         printf("Name: %s\n", acc.holderName);
         printf("Email: %s\n", acc.holderEmail);
@@ -287,12 +323,14 @@ int displayAllAccounts(const char *fileName) {
 
     if (!accountFound) {
         printf("No accounts found.\n");
+        fclose(file);
         return 0;
     }
 
     fclose(file);
     return 1;
 }
+
 int checkName(const char *name){
     int i;
     for(i=0;name[i]!='\0';i++){
@@ -302,6 +340,7 @@ int checkName(const char *name){
     }
     return 1;
 }
+
 int checkEmail(const char *email){
     const char *atSign = strchr(email,'@');
     const char *dotSign = strchr(email,'.');
