@@ -300,16 +300,46 @@ void deleteAccount(const char *fileName) {
 }
 
 void deleteHolderAccounts(const char *fileName){
-    FILE *file = fopen(fileName, "wb");
-    if (file == NULL) {
+    const char *tempFilename = "temp.bin";
+    FILE *file = fopen(fileName, "rb");
+    FILE *tempFile = fopen(tempFilename, "wb");
+
+    if (file == NULL || tempFile == NULL) {
         printf("Error opening the file.\n");
+
+        // also closing the opened file to ensure there are no memory leaks
+        if (file) fclose(file);
+        if (tempFile) fclose(tempFile);
         return;
     }
 
-    fclose(file);
-    printf("All accounts are deleted.\n");
-}
+    printf("Enter the account holder name to delete all associated accounts: ");
+    char targetName[50];
+    scanf(" %[^\n]s", targetName);
 
+    struct account acc;
+    int accountsDeleted = 0;
+
+    while (fread(&acc, sizeof(struct account), 1, file) == 1) {
+        if (strcmp(acc.holderName, targetName) == 0) {
+            accountsDeleted++;
+            printf("Account with account number %ld (Holder: %s) has been deleted.\n", acc.accNum, acc.holderName);
+            continue;
+        }
+        fwrite(&acc, sizeof(struct account), 1, tempFile);
+    }
+
+    if (accountsDeleted == 0) {
+        printf("No accounts found for the holder '%s'.\n", targetName);
+    } else {
+        printf("All accounts for holder '%s' have been deleted.\n", targetName);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+    remove(fileName);
+    rename(tempFilename, fileName);
+}
 void searchAccount(const char *fileName) {
     FILE *file = fopen(fileName, "rb");
     if (file == NULL) {
