@@ -17,16 +17,19 @@ struct account
     char holderName[50];
     char holderEmail[100];
     int numOfOper;
-    struct operation oper[100]; // it said dont define inner struct
+    struct operation oper[100];
 };
 
 void addAccount(const char *);
 void updateAccount(const char *);
 void deleteAccount(const char *);
 void deleteHolderAccounts(const char *);
+void searchAccount(const char*);
 int displayAllAccounts(const char *);
+void addOperation(const char*);
 int checkName(const char *);
 int checkEmail(const char *);
+int checkAmount(double);
 
 int main(){
 
@@ -364,6 +367,10 @@ int displayAllAccounts(const char *fileName) {
         printf("Account Number: %ld\n", acc.accNum);
         printf("Number of operations: %d\n", acc.numOfOper);
         printf("Balance: %.2lf\n", acc.balance);
+        printf("Operations:\n");
+        for (int i = 0; i < acc.numOfOper; i++) {
+            printf("  %d. %c %.2lf\n", i + 1, acc.oper[i].op, acc.oper[i].amount);
+        }
         printf("-------------------------------------------------\n");
     }
 
@@ -392,8 +399,63 @@ void addOperation(const char *fileName) {
     int accountFound = 0;
     long pos;
 
+    while ((pos = ftell(file)) >= 0 && fread(&acc, sizeof(struct account), 1, file) == 1) { // ftell returns the current position in the file and if there is an error it will return -1L
+        if (acc.accNum == targetAccNum) {
+            accountFound = 1;
 
+            
+            char opType;
+            printf("Enter operation type (D for deposit, W for withdraw): ");
+            scanf(" %c", &opType);
+            opType = toupper(opType);
+            if (opType != 'D' && opType != 'W') {
+                printf("Invalid operation type.\n");
+                break;
+            }
 
+            double opAmount;
+            printf("Enter amount: ");
+            scanf("%lf", &opAmount);
+            if (!checkAmount(opAmount)) {
+                printf("Amount must be positive.\n");
+                break;
+            }
+
+            struct operation newOper;
+            newOper.op = opType;
+            newOper.amount = opAmount;
+
+            if (opType == 'D') {
+                acc.balance += opAmount;
+            } 
+            else if (opType == 'W') {
+                if (opAmount > acc.balance) {
+                    printf("Insufficient balance for withdrawal.\n");
+                    break;
+                }
+                acc.balance -= opAmount;
+            }
+
+            acc.oper[acc.numOfOper] = newOper;
+            acc.numOfOper++;
+
+            // Move file pointer back to overwrite the account, SEEK_SET means start at the start of the file, and then move "pos" times
+            fseek(file, pos, SEEK_SET);
+            fwrite(&acc, sizeof(struct account), 1, file);
+
+            printf("Operation added successfully.\n");
+            printf("New balance: %.2lf\n", acc.balance);
+
+            break;
+
+        }
+    }
+
+    if (!accountFound) {
+    printf("Account with account number %ld not found.\n", targetAccNum);
+    }
+
+    fclose(file);
 }
 
 int checkName(const char *name){
@@ -412,6 +474,6 @@ int checkEmail(const char *email){
     return (atSign && dotSign  &&  atSign < dotSign);
 }
 
-int checkAmount(const char *amount) {
+int checkAmount(double amount) {
     return amount > 0;
 }
