@@ -41,7 +41,7 @@ int main(){
         printf("*   1. Add account           *\n");
         printf("*   2. Update account        *\n");
         printf("*   3. Delete account        *\n");
-        printf("*   4. Delete all account    *\n");
+        printf("*   4. Delete Holder accounts    *\n");
         printf("*   5. Search account        *\n");
         printf("*   6. Display all account   *\n");
         printf("*   7. Add operation         *\n");
