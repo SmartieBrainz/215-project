@@ -372,8 +372,13 @@ int displayAllAccounts(const char *fileName) {
         printf("Number of operations: %d\n", acc.numOfOper);
         printf("Balance: %.2lf\n", acc.balance);
         printf("Operations:\n");
-        for (int i = 0; i < acc.numOfOper; i++) {
+        if (acc.numOfOper == 0) {
+            printf("No history of operations found");
+        }
+        else {
+            for (int i = 0; i < acc.numOfOper; i++) {
             printf("  %d. %c %.2lf\n", i + 1, acc.oper[i].op, acc.oper[i].amount);
+        }
         }
         printf("-------------------------------------------------\n");
     }
