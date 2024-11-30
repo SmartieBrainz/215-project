@@ -39,8 +39,10 @@ int main(){
         printf("*   2. Update account        *\n");
         printf("*   3. Delete account        *\n");
         printf("*   4. Delete all account    *\n");
-        printf("*   5. Display all account   *\n");
-        printf("*   6. Exit                  *\n");
+        printf("*   5. Search account        *\n");
+        printf("*   6. Display all account   *\n");
+        printf("*   7. Add operation         *\n");
+        printf("*   8. Exit                  *\n");
         printf("******************************\n");
         printf("Enter your choice: ");
         int choice;
@@ -65,10 +67,18 @@ int main(){
                 break;
 
             case 5:
-                displayAllAccounts(fileName);
+                searchAccount(fileName);
                 break;
 
             case 6:
+                displayAllAccounts(fileName);
+                break;
+
+            case 7:
+                addOperation(fileName);
+                break;
+
+            case 8:
                 printf("Thanks, and goodbye.");
                 open = 0;
                 break;
@@ -297,6 +307,42 @@ void deleteHolderAccounts(const char *fileName){
     printf("All accounts are deleted.\n");
 }
 
+void searchAccount(const char *fileName) {
+    FILE *file = fopen(fileName, "rb");
+    if (file == NULL) {
+        printf("No accounts found.\n");
+        return;
+    }
+
+    printf("Enter the account number to search: ");
+    long targetAccNum;
+    scanf("%ld", &targetAccNum);
+
+    struct account acc;
+    int accountFound = 0;
+
+    while (fread(&acc, sizeof(struct account), 1, file) == 1) {
+        if (acc.accNum == targetAccNum) {
+            accountFound = 1;
+            printf("Account found:\n");
+            printf("-------------------------------------------------\n");
+            printf("Name: %s\n", acc.holderName);
+            printf("Email: %s\n", acc.holderEmail);
+            printf("Account Number: %ld\n", acc.accNum);
+            printf("Number of operations: %d\n", acc.numOfOper);
+            printf("Balance: %.2lf\n", acc.balance);
+            printf("-------------------------------------------------\n");
+            break;
+        }
+    }
+
+    if (!accountFound) {
+        printf("Account with account number %ld not found.\n", targetAccNum);
+    }
+
+    fclose(file);
+}
+
 int displayAllAccounts(const char *fileName) {
     FILE *file;
     struct account acc;
@@ -331,6 +377,25 @@ int displayAllAccounts(const char *fileName) {
     return 1;
 }
 
+void addOperation(const char *fileName) {
+    FILE *file = fopen(fileName, "rb+"); // So that we can read and write from the file
+    if (file == NULL) {
+        printf("No accounts found.\n");
+        return;
+    }
+
+    printf("Enter the account number to add operation: ");
+    long targetAccNum;
+    scanf("%ld", &targetAccNum);
+
+    struct account acc;
+    int accountFound = 0;
+    long pos;
+
+
+
+}
+
 int checkName(const char *name){
     int i;
     for(i=0;name[i]!='\0';i++){
@@ -347,3 +412,6 @@ int checkEmail(const char *email){
     return (atSign && dotSign  &&  atSign < dotSign);
 }
 
+int checkAmount(const char *amount) {
+    return amount > 0;
+}
