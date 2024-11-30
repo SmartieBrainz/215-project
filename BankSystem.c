@@ -321,7 +321,7 @@ void deleteHolderAccounts(const char *fileName){
     int accountsDeleted = 0;
 
     while (fread(&acc, sizeof(struct account), 1, file) == 1) {
-        if (strcmp(acc.holderName, targetName) == 0) {
+        if (strcasecmp(acc.holderName, targetName) == 0) {
             accountsDeleted++;
             printf("Account with account number %ld (Holder: %s) has been deleted.\n", acc.accNum, acc.holderName);
             continue;
