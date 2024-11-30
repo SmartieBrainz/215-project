@@ -373,7 +373,7 @@ int displayAllAccounts(const char *fileName) {
         printf("Balance: %.2lf\n", acc.balance);
         printf("Operations:\n");
         if (acc.numOfOper == 0) {
-            printf("No history of operations found");
+            printf("No history of operations found\n");
         }
         else {
             for (int i = 0; i < acc.numOfOper; i++) {
