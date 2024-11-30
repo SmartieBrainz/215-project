@@ -37,16 +37,16 @@ int main(){
     const char *fileName = "accounts.bin";
 
     do{
-        printf("******************************\n");
-        printf("*   1. Add account           *\n");
-        printf("*   2. Update account        *\n");
-        printf("*   3. Delete account        *\n");
-        printf("*   4. Delete Holder accounts    *\n");
-        printf("*   5. Search account        *\n");
-        printf("*   6. Display all account   *\n");
-        printf("*   7. Add operation         *\n");
-        printf("*   8. Exit                  *\n");
-        printf("******************************\n");
+        printf("*******************************\n");
+        printf("*   1. Add account            *\n");
+        printf("*   2. Update account         *\n");
+        printf("*   3. Delete account         *\n");
+        printf("*   4. Delete Holder accounts *\n");
+        printf("*   5. Search account         *\n");
+        printf("*   6. Display all account    *\n");
+        printf("*   7. Add operation          *\n");
+        printf("*   8. Exit                   *\n");
+        printf("*******************************\n");
         printf("Enter your choice: ");
         int choice;
         scanf("%d", &choice);
@@ -231,6 +231,7 @@ void updateAccount(const char *fileName){
                     }
                     if (!found) {
                         accounts[accountIndex].accNum = newAccNum;
+                        accNumToUpdate = newAccNum;
                     }
                 }
                 break;
@@ -277,7 +278,7 @@ void deleteAccount(const char *fileName) {
     int accountFound = 0;
 
     scanf("%ld", &target);
-    
+
     struct account acc;
 
     while (fread(&acc, sizeof(struct account), 1, file) == 1) {
@@ -433,7 +434,7 @@ void addOperation(const char *fileName) {
         if (acc.accNum == targetAccNum) {
             accountFound = 1;
 
-            
+
             char opType;
             printf("Enter operation type (D for deposit, W for withdraw): ");
             scanf(" %c", &opType);
